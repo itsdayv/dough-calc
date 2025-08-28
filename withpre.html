@@ -200,17 +200,17 @@
         ret += `Water: ${water}g\n\n`;
       }
 
-      const saltLow = Math.floor(totalWeight * 0.02);
-      const saltHigh = Math.floor(totalWeight * 0.03);
+      const saltLow = Math.floor(flour * 0.02);
+      const saltHigh = Math.floor(flour * 0.03);
 
-      const oilLow = Math.floor(totalWeight * 0.01);
-      const oilHigh = Math.floor(totalWeight * 0.03);
+      const oilLow = Math.floor(flour * 0.01);
+      const oilHigh = Math.floor(flour * 0.03);
 
-      const sugarLow = Math.floor(totalWeight * 0.01);
-      const sugarHigh = Math.floor(totalWeight * 0.02);
+      const sugarLow = Math.floor(flour * 0.01);
+      const sugarHigh = Math.floor(flour * 0.02);
 
-      const yeastLow = Math.floor(totalWeight * 0.01);
-      const yeastHigh = Math.floor(totalWeight * 0.015);
+      const yeastLow = Math.floor(flour * 0.01);
+      const yeastHigh = Math.floor(flour * 0.015);
 
       ret += `Salt: ${saltLow}g - ${saltHigh}g\n`;
       ret += `Sugar: ${sugarLow}g - ${sugarHigh}g\n`;
