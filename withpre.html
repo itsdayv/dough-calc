@@ -31,17 +31,6 @@
       text-align: center;
       animation: fadeIn 0.6s ease;
     }
-    .checkbox-group {
-      display: flex;
-      align-items: center;
-      gap: 8px; /* spacing between box and text */
-      margin-bottom: 16px;
-    }
-
-.checkbox-group input[type="checkbox"] {
-  width: auto;  /* prevents it from stretching full width */
-  margin: 0;    /* remove the bottom margin */
-}
 
     h1 {
       font-size: 1.8rem;
@@ -62,7 +51,8 @@
       font-size: 1rem;
     }
 
-    input {
+    input[type="number"],
+    input[type="text"] {
       width: 100%;
       padding: 12px;
       margin-bottom: 16px;
@@ -74,6 +64,13 @@
     input:focus {
       border-color: #4a90e2;
       outline: none;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
     }
 
     button {
@@ -110,6 +107,7 @@
       font-size: 1rem;
       line-height: 1.5;
       color: #222;
+
       white-space: pre-wrap;
       word-wrap: break-word;
     }
@@ -121,19 +119,10 @@
 
     /* Mobile adjustments */
     @media (max-width: 480px) {
-      .card {
-        padding: 20px;
-      }
-      h1 {
-        font-size: 1.5rem;
-      }
-      h2 {
-        font-size: 1.2rem;
-      }
-      input, button {
-        font-size: 1rem;
-        padding: 12px;
-      }
+      .card { padding: 20px; }
+      h1 { font-size: 1.5rem; }
+      h2 { font-size: 1.2rem; }
+      input, button { font-size: 1rem; padding: 12px; }
     }
   </style>
 </head>
@@ -146,27 +135,22 @@
       <label for="totalWeight">Desired Total Weight (g):</label>
       <input type="number" id="totalWeight" required>
 
+      <label for="hydration">Hydration (%):</label>
+      <input type="number" id="hydration" required>
+
       <div class="checkbox-group">
         <input type="checkbox" id="usePreferment" onclick="togglePreferment()">
         <label for="usePreferment">Use Preferment</label>
       </div>
 
-      <label for="hydration">Hydration (%):</label>
-      <input type="number" id="hydration" required>
-
-      <label>
-        <input type="checkbox" id="usePreferment" onclick="togglePreferment()"> 
-        Use Preferment
-      </label>
-
-      <div id="prefermentOptions" style="display:none; margin-top:10px;">
+      <div id="prefermentOptions" style="display:none; margin-bottom:16px;">
         <label for="prefermentPercent">Percent of flour prefermented:</label>
-        <input type="number" id="prefermentPercent" value="20" min="5" max="50"> %
+        <input type="number" id="prefermentPercent" value="20" min="5" max="50">
 
-        <label>
-          <input type="checkbox" id="prefermentYeast"> 
-          Add yeast to preferment (0.1% of flour)
-        </label>
+        <div class="checkbox-group">
+          <input type="checkbox" id="yeastInPreferment">
+          <label for="yeastInPreferment">Include yeast in preferment (0.1% of flour)</label>
+        </div>
       </div>
 
       <button type="submit">Calculate</button>
@@ -183,7 +167,7 @@
       options.style.display = box.checked ? "block" : "none";
     }
 
-    function makeCalc(totalWeight, hydrationPercentage, usePreferment, prefermentPercent, prefYeast) {
+    function makeCalc(totalWeight, hydrationPercentage, usePreferment, prefermentPercent, yeastInPreferment) {
       let ret = "";
 
       if (hydrationPercentage > 1) {
@@ -193,54 +177,45 @@
       const flour = Math.floor(totalWeight / (1 + hydrationPercentage));
       const water = Math.floor(flour * hydrationPercentage);
 
-      // Ingredient ranges
-      const saltLow = Math.floor(totalWeight * 0.02);
-      const saltHigh = Math.floor(totalWeight * 0.03);
-      const oilLow = Math.floor(totalWeight * 0.01);
-      const oilHigh = Math.floor(totalWeight * 0.03);
-      const sugarLow = Math.floor(totalWeight * 0.01);
-      const sugarHigh = Math.floor(totalWeight * 0.02);
-      const yeastLow = Math.floor(totalWeight * 0.01);
-      const yeastHigh = Math.floor(totalWeight * 0.015);
-
-      if (!usePreferment) {
-        // Regular formula
-        ret += `Flour: ${flour}g\n`;
-        ret += `Water: ${water}g\n\n`;
-        ret += `Salt: ${saltLow}g - ${saltHigh}g\n`;
-        ret += `Sugar: ${sugarLow}g - ${sugarHigh}g\n`;
-        ret += `Oil: ${oilLow}g - ${oilHigh}g\n`;
-        ret += `Yeast: ${yeastLow}g - ${yeastHigh}g\n\n`;
-      } else {
-        // Preferment flour & water
+      // Preferment math
+      if (usePreferment) {
         const prefermentFlour = Math.floor(flour * (prefermentPercent / 100));
-        const prefermentWater = prefermentFlour; // always 100% hydration
-        let prefermentYeast = 0;
+        const prefermentWater = prefermentFlour; // 100% hydration
+        const prefermentYeast = yeastInPreferment ? Math.max(1, Math.round(flour * 0.001)) : 0;
 
-        if (prefYeast) {
-          prefermentYeast = Math.max(1, Math.floor(prefermentFlour * 0.001)); // 0.1% of flour
-        }
-
-        // Remaining flour/water/yeast for final dough
         const finalFlour = flour - prefermentFlour;
         const finalWater = water - prefermentWater;
-        const finalYeastLow = yeastLow - prefermentYeast;
-        const finalYeastHigh = yeastHigh - prefermentYeast;
 
         ret += `--- Preferment ---\n`;
         ret += `Flour: ${prefermentFlour}g\n`;
         ret += `Water: ${prefermentWater}g\n`;
-        if (prefYeast) {
-          ret += `Yeast: ${prefermentYeast}g\n`;
-        }
-        ret += `\n--- Final Dough ---\n`;
+        if (prefermentYeast > 0) ret += `Yeast: ${prefermentYeast}g\n`;
+        ret += `\n`;
+
+        ret += `--- Final Dough (add to preferment) ---\n`;
         ret += `Flour: ${finalFlour}g\n`;
-        ret += `Water: ${finalWater}g\n`;
-        ret += `Salt: ${saltLow}g - ${saltHigh}g\n`;
-        ret += `Sugar: ${sugarLow}g - ${sugarHigh}g\n`;
-        ret += `Oil: ${oilLow}g - ${oilHigh}g\n`;
-        ret += `Yeast: ${finalYeastLow}g - ${finalYeastHigh}g\n\n`;
+        ret += `Water: ${finalWater}g\n\n`;
+      } else {
+        ret += `Flour: ${flour}g\n`;
+        ret += `Water: ${water}g\n\n`;
       }
+
+      const saltLow = Math.floor(totalWeight * 0.02);
+      const saltHigh = Math.floor(totalWeight * 0.03);
+
+      const oilLow = Math.floor(totalWeight * 0.01);
+      const oilHigh = Math.floor(totalWeight * 0.03);
+
+      const sugarLow = Math.floor(totalWeight * 0.01);
+      const sugarHigh = Math.floor(totalWeight * 0.02);
+
+      const yeastLow = Math.floor(totalWeight * 0.01);
+      const yeastHigh = Math.floor(totalWeight * 0.015);
+
+      ret += `Salt: ${saltLow}g - ${saltHigh}g\n`;
+      ret += `Sugar: ${sugarLow}g - ${sugarHigh}g\n`;
+      ret += `Oil: ${oilLow}g - ${oilHigh}g\n`;
+      ret += `Yeast: ${yeastLow}g - ${yeastHigh}g\n\n`;
 
       const allWeightLow = flour + water + saltLow + oilLow + sugarLow + yeastLow;
       const allWeightHigh = flour + water + saltHigh + oilHigh + sugarHigh + yeastHigh;
@@ -254,10 +229,10 @@
       e.preventDefault();
       const totalWeight = parseFloat(document.getElementById("totalWeight").value);
       const hydration = parseFloat(document.getElementById("hydration").value);
-      const usePref = document.getElementById("usePreferment").checked;
-      const prefPercent = usePref ? parseFloat(document.getElementById("prefermentPercent").value) : 0;
-      const prefYeast = usePref ? document.getElementById("prefermentYeast").checked : false;
-      const results = makeCalc(totalWeight, hydration, usePref, prefPercent, prefYeast);
+      const usePreferment = document.getElementById("usePreferment").checked;
+      const prefermentPercent = usePreferment ? parseFloat(document.getElementById("prefermentPercent").value) : 0;
+      const yeastInPreferment = usePreferment ? document.getElementById("yeastInPreferment").checked : false;
+      const results = makeCalc(totalWeight, hydration, usePreferment, prefermentPercent, yeastInPreferment);
       document.getElementById("results").textContent = results;
     });
   </script>
