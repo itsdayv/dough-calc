@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dough Calculator</title>
+  <style>
+    /* Reset & fonts */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+      animation: fadeIn 0.6s ease;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    form {
+      text-align: left;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #444;
+      font-size: 1rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      transition: border 0.3s;
+    }
+    input:focus {
+      border-color: #4a90e2;
+      outline: none;
+    }
+
+    button {
+      background: #4a90e2;
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.1s;
+      width: 100%;
+    }
+    button:hover {
+      background: #357ABD;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+
+    h2 {
+      margin: 20px 0 10px;
+      font-size: 1.4rem;
+      color: #333;
+    }
+
+    pre {
+      text-align: left;
+      background: #f9fafc;
+      border: 1px solid #e3e6ea;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: "Courier New", monospace;
+      font-size: 1rem;
+      line-height: 1.5;
+      color: #222;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 480px) {
+      .card {
+        padding: 20px;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+      h2 {
+        font-size: 1.2rem;
+      }
+      input, button {
+        font-size: 1rem;
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>Dough Calculator</h1>
+
+    <form id="calcForm">
+      <label for="totalWeight">Desired Total Weight (g):</label>
+      <input type="number" id="totalWeight" required>
+
+      <label for="hydration">Hydration (%):</label>
+      <input type="number" id="hydration" required>
+
+      <label>
+        <input type="checkbox" id="usePreferment" onclick="togglePreferment()"> 
+        Use Preferment
+      </label>
+
+      <div id="prefermentOptions" style="display:none; margin-top:10px;">
+        <label for="prefermentPercent">Percent of flour prefermented:</label>
+        <input type="number" id="prefermentPercent" value="20" min="5" max="50"> %
+
+        <label>
+          <input type="checkbox" id="prefermentYeast"> 
+          Add yeast to preferment (0.1% of flour)
+        </label>
+      </div>
+
+      <button type="submit">Calculate</button>
+    </form>
+
+    <h2>Results</h2>
+    <pre id="results">Enter your values above and click "Calculate".</pre>
+  </div>
+
+  <script>
+    function togglePreferment() {
+      const box = document.getElementById("usePreferment");
+      const options = document.getElementById("prefermentOptions");
+      options.style.display = box.checked ? "block" : "none";
+    }
+
+    function makeCalc(totalWeight, hydrationPercentage, usePreferment, prefermentPercent, prefYeast) {
+      let ret = "";
+
+      if (hydrationPercentage > 1) {
+        hydrationPercentage = hydrationPercentage * 0.01;
+      }
+
+      const flour = Math.floor(totalWeight / (1 + hydrationPercentage));
+      const water = Math.floor(flour * hydrationPercentage);
+
+      // Ingredient ranges
+      const saltLow = Math.floor(totalWeight * 0.02);
+      const saltHigh = Math.floor(totalWeight * 0.03);
+      const oilLow = Math.floor(totalWeight * 0.01);
+      const oilHigh = Math.floor(totalWeight * 0.03);
+      const sugarLow = Math.floor(totalWeight * 0.01);
+      const sugarHigh = Math.floor(totalWeight * 0.02);
+      const yeastLow = Math.floor(totalWeight * 0.01);
+      const yeastHigh = Math.floor(totalWeight * 0.015);
+
+      if (!usePreferment) {
+        // Regular formula
+        ret += `Flour: ${flour}g\n`;
+        ret += `Water: ${water}g\n\n`;
+        ret += `Salt: ${saltLow}g - ${saltHigh}g\n`;
+        ret += `Sugar: ${sugarLow}g - ${sugarHigh}g\n`;
+        ret += `Oil: ${oilLow}g - ${oilHigh}g\n`;
+        ret += `Yeast: ${yeastLow}g - ${yeastHigh}g\n\n`;
+      } else {
+        // Preferment flour & water
+        const prefermentFlour = Math.floor(flour * (prefermentPercent / 100));
+        const prefermentWater = prefermentFlour; // always 100% hydration
+        let prefermentYeast = 0;
+
+        if (prefYeast) {
+          prefermentYeast = Math.max(1, Math.floor(prefermentFlour * 0.001)); // 0.1% of flour
+        }
+
+        // Remaining flour/water/yeast for final dough
+        const finalFlour = flour - prefermentFlour;
+        const finalWater = water - prefermentWater;
+        const finalYeastLow = yeastLow - prefermentYeast;
+        const finalYeastHigh = yeastHigh - prefermentYeast;
+
+        ret += `--- Preferment ---\n`;
+        ret += `Flour: ${prefermentFlour}g\n`;
+        ret += `Water: ${prefermentWater}g\n`;
+        if (prefYeast) {
+          ret += `Yeast: ${prefermentYeast}g\n`;
+        }
+        ret += `\n--- Final Dough ---\n`;
+        ret += `Flour: ${finalFlour}g\n`;
+        ret += `Water: ${finalWater}g\n`;
+        ret += `Salt: ${saltLow}g - ${saltHigh}g\n`;
+        ret += `Sugar: ${sugarLow}g - ${sugarHigh}g\n`;
+        ret += `Oil: ${oilLow}g - ${oilHigh}g\n`;
+        ret += `Yeast: ${finalYeastLow}g - ${finalYeastHigh}g\n\n`;
+      }
+
+      const allWeightLow = flour + water + saltLow + oilLow + sugarLow + yeastLow;
+      const allWeightHigh = flour + water + saltHigh + oilHigh + sugarHigh + yeastHigh;
+
+      ret += `Total weight is between ${allWeightLow} and ${allWeightHigh} grams of dough.`;
+
+      return ret;
+    }
+
+    document.getElementById("calcForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const totalWeight = parseFloat(document.getElementById("totalWeight").value);
+      const hydration = parseFloat(document.getElementById("hydration").value);
+      const usePref = document.getElementById("usePreferment").checked;
+      const prefPercent = usePref ? parseFloat(document.getElementById("prefermentPercent").value) : 0;
+      const prefYeast = usePref ? document.getElementById("prefermentYeast").checked : false;
+      const results = makeCalc(totalWeight, hydration, usePref, prefPercent, prefYeast);
+      document.getElementById("results").textContent = results;
+    });
+  </script>
+
+</body>
+</html>
