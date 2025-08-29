@@ -125,6 +125,14 @@
       input, button { font-size: 1rem; padding: 12px; }
     }
   </style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-0SRKJDFPNB"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-0SRKJDFPNB');
+  </script>
 </head>
 <body>
 
@@ -148,7 +156,7 @@
         <input type="number" id="prefermentPercent" value="20" min="5" max="50">
 
         <div class="checkbox-group">
-          <input type="checkbox" id="yeastInPreferment">
+          <input type="checkbox" id="yeastInPreferment" checked>
           <label for="yeastInPreferment">Include yeast in preferment (0.1% of flour)</label>
         </div>
       </div>
@@ -239,3 +247,6 @@
 
 </body>
 </html>
+
+
+
